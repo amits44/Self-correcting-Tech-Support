@@ -1,0 +1,57 @@
+from state import GraphState
+from chains import relevance_grader, hallucination_grader, AnswerGrader
+from retriever import retriever
+#from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
+from langchain_core.documents import Document
+from dotenv import load_dotenv
+load_dotenv()
+
+web_search_tool = TavilySearch(max_results=3)
+llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
+
+rag_prompt = ChatPromptTemplate.from_template(
+    "You are a helpful tech support engineer. Answer based on the context below.\n\n"
+    "Context: {context}\n\nQuestion: {question}"
+)
+rag_chain = rag_prompt | llm | StrOutputParser()
+
+def retrieve(state: GraphState) -> GraphState:
+    docs = retriever.invoke(state["question"])
+    return {"documents": docs}
+
+def graded_documents(state: GraphState) -> GraphState:
+    filtered, needs_web =[], False
+    for doc in state["documents"]:
+        score = relevance_grader.invoke({"question": state["question"], "document": doc.page_content})
+        if score.binary_score == "yes":
+            filtered.append(doc)
+        else:
+            needs_web = True
+    return {"documents": filtered, "web_fallback": needs_web or len(filtered) == 0}
+
+def web_search(state:GraphState) -> GraphState:
+    #results = web_search_tool.invoke(state["question"])
+    search_output = web_search_tool.invoke({"query": state["question"]})
+    
+    if isinstance(search_output, dict) and "results" in search_output:
+        results_list = search_output["results"]
+    else:
+        results_list = search_output
+    web_docs = [Document(page_content=r["content"]) for r in results_list]
+    return {"documents": state["documents"] + web_docs}
+
+def generate(state:GraphState)-> GraphState:
+    context = "\n\n".join([doc.page_content for doc in state["documents"]])
+    generation = rag_chain.invoke({"context": context, "question": state["question"]})
+    return {"generation": generation}
+
+def check_hallucination(state: GraphState) -> GraphState:
+    docs_text ="\n\n".join([doc.page_content for doc in state["documents"]])
+    h_score = hallucination_grader.invoke({"documents": docs_text, "generation": state["generation"]})
+    a_score = AnswerGrader.invoke({"question": state["question"], "generation": state["generation"]})
+    is_good = h_score.binary_score == "yes" and a_score.binary_score == "yes"
+    return{"hallucination": not is_good}
