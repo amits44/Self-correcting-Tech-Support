@@ -20,8 +20,8 @@ def load_documents(docs_dir: str= DOCS_DIR):
     documents=[]
     loaders=[
         DirectoryLoader(docs_dir, glob="**/*.pdf", loader_cls = PyPDFLoader),
-        DirectoryLoader(docs_dir, "**/*.txt", loader_cls = TextLoader),
-        DirectoryLoader(docs_dir, "**/*.md", loader_cls = UnstructuredMarkdownLoader)
+        DirectoryLoader(docs_dir, glob="**/*.txt", loader_cls = TextLoader),
+        DirectoryLoader(docs_dir, glob="**/*.md", loader_cls = UnstructuredMarkdownLoader)
     ]
     for loader in loaders:
         try:
