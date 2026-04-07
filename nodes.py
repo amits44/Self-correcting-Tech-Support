@@ -5,13 +5,14 @@ from retriever import retriever
 from langchain_tavily import TavilySearch
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import ChatOllama
+#from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain_core.documents import Document
 from dotenv import load_dotenv
 load_dotenv()
 
 web_search_tool = TavilySearch(max_results=3)
-llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 rag_prompt = ChatPromptTemplate.from_template(
     "You are a helpful tech support engineer. Answer based on the context below.\n\n"
