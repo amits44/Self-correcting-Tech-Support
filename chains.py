@@ -1,8 +1,9 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import ChatOllama
+#from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
 
-llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 class GradeDocuments(BaseModel):
     binary_score: str = Field(description="'yes' or 'no'")
@@ -23,9 +24,10 @@ hallucination_grader = ChatPromptTemplate.from_messages([
     ("human", "Documents: {documents}\n\nGeneration: {generation}"),
 ]) | llm.with_structured_output(GradeHallucination)
 
-AnswerGrader = (
-    ChatPromptTemplate.from_messages([
+class AnswerGrader(BaseModel):
+    binary_score: str = Field(description= "'yes' if the answer directly resolves the user question, 'no',if it does not resolves the user question ")
+
+AnswerGrader = ChatPromptTemplate.from_messages([
         ("system", "Does this answer address the question? 'yes' or 'no'."),
         ("human", "Question: {question}\n\nAnswer: {generation}"),
-    ]) | llm.with_structured_output(GradeHallucination)
-)
+    ]) | llm.with_structured_output(AnswerGrader)
