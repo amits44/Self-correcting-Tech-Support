@@ -11,7 +11,7 @@ ls_client = Client()
 if "run_id" not in st.session_state:
     st.session_state.run_id = None
 
-st.title("🔍 C-RAG Research Assistant")
+st.title(" C-RAG Research Assistant")
 st.markdown("*Corrective RAG with web fallback for accurate research answers*")
 
 # File upload section
