@@ -9,8 +9,8 @@ A **Corrective Retrieval-Augmented Generation (CRAG)** system that intelligently
 
 ##  Features
 
-- ** Multi-Format Document Support** - PDF, TXT, MD, CSV files
-- ** Intelligent Retrieval** - Vector similarity search with relevance grading
+-  Multi-Format Document Support** - PDF, TXT, MD, CSV files
+- ** Intelligent Retrieval - Vector similarity search with relevance grading
 - ** Web Fallback** - Automatically searches the web when local documents are insufficient
 - ** Hallucination Detection** - Validates answers against source documents
 - ** Self-Correction** - Retries generation if answers are not grounded
